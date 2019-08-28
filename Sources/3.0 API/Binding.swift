@@ -18,7 +18,7 @@ public struct Binding<Instance, Context> {
     var arguments: Arguments.Descriptor
 }
 
-extension Binding: AnyBinding {
+extension Binding: KeyedBinding {
     public var keys: [BindingKey] {
         return products.map { BindingKey(type: $0, contextType: Context.self, arguments: arguments) }
     }

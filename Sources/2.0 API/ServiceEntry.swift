@@ -70,7 +70,7 @@ public class ServiceEntry<Service> {
     }
 }
 
-extension ServiceEntry: AnyBinding {
+extension ServiceEntry: KeyedBinding {
     public var overrides: Bool { return false }
     public var dependencies: [BindingDependency] { return [] }
 

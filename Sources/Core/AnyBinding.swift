@@ -39,8 +39,15 @@ public enum BindingDependency {
 }
 
 public protocol AnyBinding: SwinjectEntry {
-    var keys: [BindingKey] { get }
-    var overrides: Bool { get }
     var dependencies: [BindingDependency] { get }
     func makeInstance(resolver: Resolver, arguments: Arguments) throws -> Any
+}
+
+public protocol KeyedBinding: AnyBinding {
+    var keys: [BindingKey] { get }
+    var overrides: Bool { get }
+}
+
+public protocol FuzzyBinding: AnyBinding {
+    func matches<Type>(_ request: InstanceRequest<Type>) -> Bool
 }

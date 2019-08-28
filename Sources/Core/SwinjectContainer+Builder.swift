@@ -70,7 +70,7 @@ extension SwinjectContainer.Builder {
         canOverride: Bool? = nil,
         canOverrideSilently: Bool
     ) -> [BindingEntry] {
-        return tree.bindings
+        return tree.keyedBindings
             .flatMap { binding in binding.keys.map { key in
                 BindingEntry(
                     binding: binding,
