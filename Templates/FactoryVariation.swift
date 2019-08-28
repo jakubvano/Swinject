@@ -40,7 +40,7 @@ extension FactoryVariation {
     }
 
     var returnType: String {
-        return "Binding<NewInstance, Context>"
+        return "KeyedBinding<NewInstance, Context>"
     }
 
     var hashableArgTypes: String {
@@ -56,6 +56,7 @@ extension FactoryVariation {
 
     var factoryInputs: String {
         return join(
+            "_",
             hasResolver ? "r" : "_",
             args > 0 ? "a" : "_"
         )

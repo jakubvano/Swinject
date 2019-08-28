@@ -70,11 +70,11 @@ public class ServiceEntry<Service> {
     }
 }
 
-extension ServiceEntry: KeyedBinding {
+extension ServiceEntry: AnyKeyedBinding {
     public var overrides: Bool { return false }
     public var dependencies: [BindingDependency] { return [] }
 
-    public func makeInstance(resolver: Resolver, arguments: Arguments) throws -> Any {
+    public func makeInstance(type _: TypeDescriptor, resolver: Resolver, arguments: Arguments) throws -> Any {
         let context = try resolver.context(as: key.contextType)
         if let scope = scope {
             return getRegistry(scope: scope, context: context).instance(

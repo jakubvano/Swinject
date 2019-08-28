@@ -9,45 +9,47 @@ public struct BindingProperties {
     static let `default` = BindingProperties(overrides: false, reference: strongRef)
 }
 
-public struct Binding<Instance, Context> {
-    var products: [TypeDescriptor]
-    public var dependencies: [BindingDependency]
-    var factory: (ContextedResolver<Context>, Arguments) throws -> Instance
-    var properties: BindingProperties = .default
-    var scope: AnyScope?
-    var arguments: Arguments.Descriptor
+protocol Binding: AnyBinding {
+    associatedtype Instance
+    associatedtype Context
+
+    var dependencies: [BindingDependency] { get set }
+    var factory: (TypeDescriptor, ContextedResolver<Context>, Arguments) throws -> Instance { get set }
+    var properties: BindingProperties { get set }
+    var scope: AnyScope? { get }
+    var arguments: Arguments.Descriptor { get set }
+
+    func registryKey(forType type: TypeDescriptor, arguments: Arguments) -> ScopeRegistryKey
 }
 
-extension Binding: KeyedBinding {
-    public var keys: [BindingKey] {
-        return products.map { BindingKey(type: $0, contextType: Context.self, arguments: arguments) }
-    }
-
+extension Binding {
     public var overrides: Bool { return properties.overrides }
 
-    public func makeInstance(resolver: Resolver, arguments: Arguments) throws -> Any {
+    public func makeInstance(type: TypeDescriptor, resolver: Resolver, arguments: Arguments) throws -> Any {
         if let scope = scope {
-            return try scopedInstance(resolver: resolver, scope: scope, arguments: arguments)
+            return try scopedInstance(type: type, resolver: resolver, scope: scope, arguments: arguments)
         } else {
-            return try simpleInstance(resolver: resolver, arguments: arguments)
+            return try simpleInstance(type: type, resolver: resolver, arguments: arguments)
         }
     }
 
-    private func scopedInstance(resolver: Resolver, scope: AnyScope, arguments: Arguments) throws -> Any {
+    private func scopedInstance(
+        type: TypeDescriptor, resolver: Resolver, scope: AnyScope, arguments: Arguments
+    ) throws -> Any {
         return try scope
             .registry(for: resolver.context(as: Context.self))
-            .instance(for: ScopeRegistryKey(descriptor: products.first!, arguments: arguments)) {
-                try properties.reference(simpleInstance(resolver: resolver, arguments: arguments))
+            .instance(for: registryKey(forType: type, arguments: arguments)) {
+                try properties.reference(simpleInstance(type: type, resolver: resolver, arguments: arguments))
             }
     }
 
-    private func simpleInstance(resolver: Resolver, arguments: Arguments) throws -> Any {
-        return try factory(resolver.contexted(), arguments)
+    private func simpleInstance(type: TypeDescriptor, resolver: Resolver, arguments: Arguments) throws -> Any {
+        return try factory(type, resolver.contexted(), arguments)
     }
 }
 
 extension Binding {
-    func updated(_ update: (inout Binding<Instance, Context>) -> Void) -> Binding<Instance, Context> {
+    func updated(_ update: (inout Self) -> Void) -> Self {
         var copy = self
         update(&copy)
         return copy

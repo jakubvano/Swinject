@@ -9,12 +9,12 @@ public struct SwinjectTree {
 }
 
 extension SwinjectTree {
-    var keyedBindings: [KeyedBinding] {
-        return bindings.compactMap { $0 as? KeyedBinding }
+    var keyedBindings: [AnyKeyedBinding] {
+        return bindings.compactMap { $0 as? AnyKeyedBinding }
     }
 
-    var fuzzyBindings: [FuzzyBinding] {
-        return bindings.compactMap { $0 as? FuzzyBinding }
+    var fuzzyBindings: [AnyFuzzyBinding] {
+        return bindings.compactMap { $0 as? AnyFuzzyBinding }
     }
 }
 
