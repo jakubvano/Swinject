@@ -3,7 +3,8 @@
 //
 
 public struct FuzzyBinding<Instance, Context> {
-    var matches: (AnyInstanceRequest) -> Bool
+    var tag: String?
+    var doesTypeMatch: (Any.Type) -> Bool
     public var dependencies: [BindingDependency]
     var factory: (TypeDescriptor, ContextedResolver<Context>, Arguments) throws -> Instance
     var properties: BindingProperties = .default
@@ -18,8 +19,11 @@ extension FuzzyBinding: Binding {
 }
 
 extension FuzzyBinding: AnyFuzzyBinding {
-    public func matches<Type>(_ request: InstanceRequest<Type>) -> Bool {
-        return matches(request as AnyInstanceRequest)
+    public func matches(_ key: BindingKey) -> Bool {
+        return key.contextType == Context.self
+            && key.arguments == arguments
+            && key.type.tag == tag
+            && doesTypeMatch(key.type.type)
     }
 }
 
@@ -27,15 +31,18 @@ public extension Registration {
     // TODO: Overloads
     func subtypeFactory<BaseType>(
         for _: BaseType.Type,
+        tag: String? = nil,
         factory: @escaping (BaseType.Type, ContextedResolver<Context>) throws -> BaseType
     ) -> FuzzyBinding<BaseType, Context> {
         return FuzzyBinding<BaseType, Context>(
-            matches: { $0.type.type is BaseType.Type },
+            tag: tag,
+            doesTypeMatch: { $0 is BaseType.Type },
             dependencies: [],
             factory: { descriptor, resolver, _ in
                 guard let type = descriptor.type as? BaseType.Type else { throw TypeMismatch() }
                 return try factory(type, resolver)
             },
+            scope: scope,
             arguments: []
         )
     }

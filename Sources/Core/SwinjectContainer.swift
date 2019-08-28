@@ -3,13 +3,14 @@
 //
 
 struct SwinjectContainer {
-    let bindings: [BindingKey: AnyBinding]
+    let keyedBindings: [BindingKey: AnyBinding]
+    let fuzzyBindings: [AnyFuzzyBinding]
     let translators: [AnyContextTranslator]
 }
 
 extension SwinjectContainer {
     func checkDependencies() throws {
-        try bindings.values
+        try keyedBindings.values
             .flatMap { $0.dependencies }
             .compactMap { $0.asInstanceRequest }
             .forEach {
@@ -28,7 +29,7 @@ extension SwinjectContainer {
     }
 
     func findBinding(for request: InstanceRequestDescriptor, on contextType: Any.Type) throws -> AnyBinding {
-        let bindings = translatableKeys(for: request, on: contextType).compactMap { self.bindings[$0] }
+        let bindings = translatableKeys(for: request, on: contextType).flatMap(findBindings)
         if bindings.isEmpty { throw NoBinding() }
         if bindings.count > 1 { throw MultipleBindings() }
         return bindings[0]
@@ -36,6 +37,10 @@ extension SwinjectContainer {
 
     func allTranslators(on contextType: Any.Type) -> [AnyContextTranslator] {
         return translators.filter { $0.sourceType == contextType } + defaultTranslators(on: contextType)
+    }
+
+    private func findBindings(for key: BindingKey) -> [AnyBinding] {
+        return fuzzyBindings.filter { $0.matches(key) } + [keyedBindings[key]].compactMap { $0 }
     }
 
     private func defaultTranslators(on contextType: Any.Type) -> [AnyContextTranslator] {

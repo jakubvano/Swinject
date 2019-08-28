@@ -49,5 +49,5 @@ public protocol AnyKeyedBinding: AnyBinding {
 }
 
 public protocol AnyFuzzyBinding: AnyBinding {
-    func matches<Type>(_ request: InstanceRequest<Type>) -> Bool
+    func matches(_ key: BindingKey) -> Bool
 }

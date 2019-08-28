@@ -17,7 +17,8 @@ extension SwinjectContainer.Builder {
     private func makeContainerOrThrow() throws -> SwinjectContainer {
         try checkDuplicitModules()
         let container = SwinjectContainer(
-            bindings: try collectBindings(),
+            keyedBindings: try collectBindings(),
+            fuzzyBindings: tree.fuzzyBindings,
             translators: tree.translators
         )
         try container.checkDependencies()
