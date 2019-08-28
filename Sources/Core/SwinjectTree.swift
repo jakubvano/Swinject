@@ -8,16 +8,6 @@ public struct SwinjectTree {
     let translators: [AnyContextTranslator]
 }
 
-extension SwinjectTree {
-    var keyedBindings: [AnyKeyedBinding] {
-        return bindings.compactMap { $0 as? AnyKeyedBinding }
-    }
-
-    var fuzzyBindings: [AnyFuzzyBinding] {
-        return bindings.compactMap { $0 as? AnyFuzzyBinding }
-    }
-}
-
 #if swift(>=5.1)
     @_functionBuilder
     public enum SwinjectTreeBuilder {}

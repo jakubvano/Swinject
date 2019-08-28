@@ -146,7 +146,11 @@ extension Container: Resolver {
     private var swinject: Resolver {
         return Swinject(
             tree: SwinjectTree(bindings: [], modules: [], translators: []),
-            container: SwinjectContainer(keyedBindings: allBindings, fuzzyBindings: [], translators: []),
+            container: SwinjectContainer(
+                keyedBindings: allBindings,
+                nonKeyedBindings: [],
+                translators: []
+            ),
             anyContext: Graph(),
             contextType: Graph.self,
             stack: [],

@@ -4,7 +4,7 @@
 
 struct SwinjectContainer {
     let keyedBindings: [BindingKey: AnyBinding]
-    let fuzzyBindings: [AnyFuzzyBinding]
+    let nonKeyedBindings: [AnyBinding]
     let translators: [AnyContextTranslator]
 }
 
@@ -29,7 +29,7 @@ extension SwinjectContainer {
     }
 
     func findBinding(for request: InstanceRequestDescriptor, on contextType: Any.Type) throws -> AnyBinding {
-        let bindings = translatableKeys(for: request, on: contextType).flatMap(findBindings)
+        let bindings = findBindings(for: request, on: contextType)
         if bindings.isEmpty { throw NoBinding() }
         if bindings.count > 1 { throw MultipleBindings() }
         return bindings[0]
@@ -39,8 +39,15 @@ extension SwinjectContainer {
         return translators.filter { $0.sourceType == contextType } + defaultTranslators(on: contextType)
     }
 
-    private func findBindings(for key: BindingKey) -> [AnyBinding] {
-        return fuzzyBindings.filter { $0.matches(key) } + [keyedBindings[key]].compactMap { $0 }
+    private func findBindings(for request: InstanceRequestDescriptor, on contextType: Any.Type) -> [AnyBinding] {
+        let keyed = translatableKeys(for: request, on: contextType).compactMap { keyedBindings[$0] }
+        if !keyed.isEmpty {
+            return keyed
+        } else {
+            return translatableKeys(for: request, on: contextType).flatMap { key in
+                nonKeyedBindings.filter { $0.matches(key) }
+            }
+        }
     }
 
     private func defaultTranslators(on contextType: Any.Type) -> [AnyContextTranslator] {

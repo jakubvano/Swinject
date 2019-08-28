@@ -17,8 +17,8 @@ extension SwinjectContainer.Builder {
     private func makeContainerOrThrow() throws -> SwinjectContainer {
         try checkDuplicitModules()
         let container = SwinjectContainer(
-            keyedBindings: try collectBindings(),
-            fuzzyBindings: tree.fuzzyBindings,
+            keyedBindings: try collectKeyedBindings(),
+            nonKeyedBindings: tree.bindings.filter { !($0 is AnyKeyedBinding) },
             translators: tree.translators
         )
         try container.checkDependencies()
@@ -38,7 +38,7 @@ extension SwinjectContainer.Builder {
 }
 
 extension SwinjectContainer.Builder {
-    private struct BindingEntry {
+    private struct KeyedBindingEntry {
         let binding: AnyBinding
         let key: BindingKey
         let overrides: Bool
@@ -46,15 +46,15 @@ extension SwinjectContainer.Builder {
         let canOverrideSilently: Bool
     }
 
-    private func collectBindings() throws -> [BindingKey: AnyBinding] {
-        return try collectBindingEntries(from: tree, canOverrideSilently: properties.allowsSilentOverride)
+    private func collectKeyedBindings() throws -> [BindingKey: AnyBinding] {
+        return try collectKeyedBindingEntries(from: tree, canOverrideSilently: properties.allowsSilentOverride)
             .reduce(into: [BindingKey: AnyBinding]()) { dict, entry in
                 try checkOverrideRules(for: entry, beingAddedTo: dict)
                 dict[entry.key] = entry.binding
             }
     }
 
-    private func checkOverrideRules(for entry: BindingEntry, beingAddedTo dict: [BindingKey: AnyBinding]) throws {
+    private func checkOverrideRules(for entry: KeyedBindingEntry, beingAddedTo dict: [BindingKey: AnyBinding]) throws {
         if !entry.canOverride, entry.overrides {
             throw OverrideNotAllowed()
         }
@@ -66,14 +66,15 @@ extension SwinjectContainer.Builder {
         }
     }
 
-    private func collectBindingEntries(
+    private func collectKeyedBindingEntries(
         from tree: SwinjectTree,
         canOverride: Bool? = nil,
         canOverrideSilently: Bool
-    ) -> [BindingEntry] {
-        return tree.keyedBindings
+    ) -> [KeyedBindingEntry] {
+        return tree.bindings
+            .compactMap { $0 as? AnyKeyedBinding }
             .flatMap { binding in binding.keys.map { key in
-                BindingEntry(
+                KeyedBindingEntry(
                     binding: binding,
                     key: key,
                     overrides: binding.overrides,
@@ -81,7 +82,7 @@ extension SwinjectContainer.Builder {
                     canOverrideSilently: canOverrideSilently
                 )
             } }
-            + tree.modules.flatMap { collectBindingEntries(
+            + tree.modules.flatMap { collectKeyedBindingEntries(
                 from: $0.module.tree,
                 canOverride: canOverride ?? $0.canOverride,
                 canOverrideSilently: $0.module.allowsSilentOverride

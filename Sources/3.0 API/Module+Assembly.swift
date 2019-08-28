@@ -4,7 +4,7 @@
 
 extension Swinject.Module: Assembly {
     public func assemble(container: Container) {
-        for binding in tree.keyedBindings {
+        for binding in tree.bindings.compactMap({ $0 as? AnyKeyedBinding }) {
             for key in binding.keys {
                 container.bindings[key] = binding
             }
