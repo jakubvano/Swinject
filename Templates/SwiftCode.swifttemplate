@@ -175,11 +175,13 @@ extension FactoryVariation {
     func render() -> String {
         return """
             func factory<\(genericTypes)>(\(params)) -> \(returnType) {
-                return updatedFactory { \(factoryInputs) in try factory(\(factoryVars)) }.updated {
-                    $0.products = [tagged(NewInstance.self, with: tag)]
-                    $0.dependencies = []
-                    $0.arguments = [\(argDescriptorTypes)]
-                }
+                return \(returnType)(
+                    products: [tagged(NewInstance.self, with: tag)],
+                    dependencies: [],
+                    factory: { \(factoryInputs) in try factory(\(factoryVars)) },
+                    scope: scope,
+                    arguments: [\(argDescriptorTypes)]
+                )
             }
         """
     }

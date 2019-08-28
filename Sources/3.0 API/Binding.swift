@@ -13,7 +13,7 @@ public struct Binding<Instance, Context> {
     var products: [TypeDescriptor]
     public var dependencies: [BindingDependency]
     var factory: (ContextedResolver<Context>, Arguments) throws -> Instance
-    var properties: BindingProperties
+    var properties: BindingProperties = .default
     var scope: AnyScope?
     var arguments: Arguments.Descriptor
 }
@@ -51,18 +51,5 @@ extension Binding {
         var copy = self
         update(&copy)
         return copy
-    }
-
-    func updatedFactory<NewInstance>(
-        factory: @escaping (ContextedResolver<Context>, Arguments) throws -> NewInstance
-    ) -> Binding<NewInstance, Context> {
-        return Binding<NewInstance, Context>(
-            products: products,
-            dependencies: dependencies,
-            factory: factory,
-            properties: properties,
-            scope: scope,
-            arguments: arguments
-        )
     }
 }

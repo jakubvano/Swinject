@@ -2,43 +2,15 @@
 //  Copyright © 2019 Swinject Contributors. All rights reserved.
 //
 
-public func register<Context>(inContextOf _: Context.Type) -> Binding<Void, Context> {
-    return Binding(
-        products: [],
-        dependencies: [],
-        factory: { _, _ in },
-        properties: .default,
-        scope: nil,
-        arguments: []
-    )
-}
-
-public func register() -> Binding<Void, Any> {
-    return register(inContextOf: Any.self)
-}
-
-public func registerSingle<AScope: Scope>(in scope: AScope) -> Binding<Void, AScope.Context> {
-    return Binding(
-        products: [],
-        dependencies: [],
-        factory: { _, _ in },
-        properties: .default,
-        scope: scope,
-        arguments: []
-    )
-}
-
-public func registerSingle() -> Binding<Void, UnboundScope.Context> {
-    return registerSingle(in: UnboundScope.root)
-}
-
-public extension Binding where Instance == Void {
+public extension Registration {
     func constant<Value>(_ value: Value, tag: String? = nil) -> Binding<Value, Context> {
-        return updatedFactory { _, _ in value }.updated {
-            $0.products = [tagged(Value.self, with: tag)]
-            $0.dependencies = []
-            $0.arguments = []
-        }
+        return Binding(
+            products: [tagged(Value.self, with: tag)],
+            dependencies: [],
+            factory: { _, _ in value },
+            scope: scope,
+            arguments: []
+        )
     }
 
     func resultOf<NewInstance>(
@@ -46,12 +18,13 @@ public extension Binding where Instance == Void {
         as _: NewInstance.Type = NewInstance.self,
         tag: String? = nil
     ) -> Binding<NewInstance, Context> {
-        return updatedFactory(factory: call.execute).updated {
-            // TODO: assert context type
-            $0.products = [tagged(NewInstance.self, with: tag)]
-            $0.dependencies = call.inputs.map { $0.asDependency }
-            $0.arguments.types = call.inputs.compactMap { $0.asArgumentDependency }
-        }
+        return Binding(
+            products: [tagged(NewInstance.self, with: tag)],
+            dependencies: call.inputs.map { $0.asDependency },
+            factory: call.execute,
+            scope: scope,
+            arguments: .init(types: call.inputs.compactMap { $0.asArgumentDependency })
+        )
     }
 }
 
