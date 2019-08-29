@@ -10,7 +10,7 @@ public struct SubtypeBinding<BaseType> {
     var properties: BindingProperties = .default
     var scope: AnyScope?
     var arguments: Arguments.Descriptor
-    var contextType: Any.Type
+    var context: ContextDescriptor
 }
 
 extension SubtypeBinding: BaseBinding {
@@ -19,7 +19,7 @@ extension SubtypeBinding: BaseBinding {
     }
 
     func matches(_ key: BindingKey) -> Bool {
-        return key.contextType == contextType // FIXME: optional type, any context
+        return key.context == context
             && key.arguments == arguments
             && key.type.tag == tag
             && doesTypeMatch(key.type.type)
@@ -49,7 +49,7 @@ public extension Registration {
             },
             scope: scope,
             arguments: [],
-            contextType: Context.self
+            context: ContextDescriptor(type: Context.self)
         )
     }
 }

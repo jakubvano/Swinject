@@ -176,6 +176,10 @@
 		751F545653B0F1E30341C312 /* OverrideSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86C18DDD83715886DF7F1818 /* OverrideSpec.swift */; };
 		75D74C8C25EDACF5A7A75A5C /* Swinject.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9620155728133F451B31C0AD /* Swinject.swift */; };
 		778D9AB6470D4280254AC140 /* TestModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 722CAC1761180366DE75A4A6 /* TestModels.swift */; };
+		77B60C822317F17F00F6CCE3 /* ContextDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77B60C812317F17F00F6CCE3 /* ContextDescriptor.swift */; };
+		77B60C832317F17F00F6CCE3 /* ContextDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77B60C812317F17F00F6CCE3 /* ContextDescriptor.swift */; };
+		77B60C842317F17F00F6CCE3 /* ContextDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77B60C812317F17F00F6CCE3 /* ContextDescriptor.swift */; };
+		77B60C852317F17F00F6CCE3 /* ContextDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77B60C812317F17F00F6CCE3 /* ContextDescriptor.swift */; };
 		77BF219EAB4FC8475943CECC /* Swinject.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6D434EB4C13CF9D9FA6D80CB /* Swinject.framework */; };
 		789BF74652A2424EB8F7EF47 /* Nimble.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 30EDBFDB23A7FB3DA7758DD0 /* Nimble.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		7A7032384E07DAD308D4F70A /* Swinject.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 8B9785AAE94A5447FA307242 /* Swinject.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -554,6 +558,7 @@
 		74118B5030E790B24C0F44AF /* ContainerSpec.CustomStringConvertible.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContainerSpec.CustomStringConvertible.swift; sourceTree = "<group>"; };
 		74DE57FB3E8228904E6FE0D7 /* Swinject.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Swinject.h; sourceTree = "<group>"; };
 		75BE3AE3E30DFE42A919D825 /* ModulesSpec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModulesSpec.swift; sourceTree = "<group>"; };
+		77B60C812317F17F00F6CCE3 /* ContextDescriptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContextDescriptor.swift; sourceTree = "<group>"; };
 		78F0D8665C3D7F020BDA1ACB /* ServiceEntry+TypeForwarding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ServiceEntry+TypeForwarding.swift"; sourceTree = "<group>"; };
 		7C83EC4390A34D207245D9C9 /* ContextTranslator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContextTranslator.swift; sourceTree = "<group>"; };
 		7DB3B73B11CA8650972E1175 /* ScopeRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScopeRegistry.swift; sourceTree = "<group>"; };
@@ -907,6 +912,7 @@
 				C1E726A651C3AFE92C19608B /* SwinjectModule.swift */,
 				47018AC89CBE8254E17C4639 /* SwinjectTree.swift */,
 				E4E2DEB50E8526344B904B3C /* TypeDescriptor.swift */,
+				77B60C812317F17F00F6CCE3 /* ContextDescriptor.swift */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -1448,6 +1454,7 @@
 			files = (
 				5A74DF28BBEBC4E494E67162 /* AnyBinding.swift in Sources */,
 				B90A5B58E1DF17A63B093BE5 /* Arguments.swift in Sources */,
+				77B60C832317F17F00F6CCE3 /* ContextDescriptor.swift in Sources */,
 				19EBB651BD06BD0C03C1ACB5 /* Assembler.swift in Sources */,
 				F504C2ABEFCFFCAC8B858751 /* Assembly.swift in Sources */,
 				703F8B3AD111A6CFAFF66A49 /* Behavior.swift in Sources */,
@@ -1684,6 +1691,7 @@
 			files = (
 				9A8E74FAA81B2E5A1903371A /* AnyBinding.swift in Sources */,
 				603BD4D9FBE1B2A5916967CA /* Arguments.swift in Sources */,
+				77B60C842317F17F00F6CCE3 /* ContextDescriptor.swift in Sources */,
 				5D5852F610358DFF7230C35C /* Assembler.swift in Sources */,
 				74E1FC692A27C56510363364 /* Assembly.swift in Sources */,
 				FA805A162E989A22990B99AA /* Behavior.swift in Sources */,
@@ -1734,6 +1742,7 @@
 			files = (
 				168224D6B76AF22325307EB6 /* AnyBinding.swift in Sources */,
 				41BD3DC77CA877DB46844B18 /* Arguments.swift in Sources */,
+				77B60C852317F17F00F6CCE3 /* ContextDescriptor.swift in Sources */,
 				290C9E9420A1EE30456476CB /* Assembler.swift in Sources */,
 				3099172980F9E9143C0A1C20 /* Assembly.swift in Sources */,
 				2CB057F2A16DA462E0517AAB /* Behavior.swift in Sources */,
@@ -1784,6 +1793,7 @@
 			files = (
 				83CDF14784F813ABD8E00933 /* AnyBinding.swift in Sources */,
 				A2E179234F7C8526A1A9BF87 /* Arguments.swift in Sources */,
+				77B60C822317F17F00F6CCE3 /* ContextDescriptor.swift in Sources */,
 				DC5B169FD525CC1C01518312 /* Assembler.swift in Sources */,
 				BB8FDF4F2A0AF8C1DA615854 /* Assembly.swift in Sources */,
 				F7979BE4BE1B1C7101D15E61 /* Behavior.swift in Sources */,

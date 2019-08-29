@@ -95,7 +95,7 @@ extension FactoryVariation {
                     factory: { \(factoryInputs) in try factory(\(factoryVars)) },
                     scope: scope,
                     arguments: [\(argDescriptorTypes)],
-                    contextType: Context.self
+                    context: ContextDescriptor(type: Context.self)
                 )
             }
         """

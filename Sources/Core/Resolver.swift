@@ -29,7 +29,7 @@ public struct ContextedResolver<Context>: Resolver {
     }
 
     public func context() throws -> Context {
-        return try context(as: Context.self) as! Context
+        return try context(as: Context.self) as? Context ?? { throw ContextMismatch() }()
     }
 }
 

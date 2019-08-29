@@ -55,5 +55,11 @@ class OptionalsSpec: QuickSpec { override func spec() { #if swift(>=5.1)
         }
         expect { try instance(of: Int.self).from(swinject.on("42" as String?)) } == 42
     }
+    it("throws if injecting on the nil value of a binding's context") {
+        let swinject = Swinject {
+            register(inContextOf: String.self).factory { try Int($0.context())! }
+        }
+        expect { try instance(of: Int.self).from(swinject.on(nil as String?)) }.to(throwError())
+    }
     #endif
 } }

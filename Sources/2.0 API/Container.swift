@@ -152,7 +152,7 @@ extension Container: Resolver {
                 translators: []
             ),
             anyContext: Graph(),
-            contextType: Graph.self,
+            contextDescriptor: ContextDescriptor(type: Graph.self),
             stack: [],
             properties: Swinject.Properties(
                 allowsSilentOverride: true,

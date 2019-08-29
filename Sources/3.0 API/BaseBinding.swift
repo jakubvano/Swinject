@@ -15,7 +15,7 @@ protocol BaseBinding: AnyBinding {
     var factory: (TypeDescriptor, Resolver, Arguments) throws -> Instance { get set }
     var properties: BindingProperties { get set }
     var scope: AnyScope? { get }
-    var contextType: Any.Type { get }
+    var context: ContextDescriptor { get }
 
     func registryKey(forType type: TypeDescriptor, arguments: Arguments) -> ScopeRegistryKey
 }
@@ -35,7 +35,7 @@ extension BaseBinding {
         type: TypeDescriptor, resolver: Resolver, scope: AnyScope, arguments: Arguments
     ) throws -> Any {
         return try scope
-            .registry(for: resolver.context(as: contextType))
+            .registry(for: resolver.context(as: context.type))
             .instance(for: registryKey(forType: type, arguments: arguments)) {
                 try properties.reference(factory(type, resolver, arguments))
             }

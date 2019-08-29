@@ -24,5 +24,6 @@ public class MissingArgument: SwinjectError {}
 public class ArgumentMismatch: SwinjectError {}
 public class TypeMismatch: SwinjectError {}
 public class MissingDependency: SwinjectError {}
+public class ContextMismatch: SwinjectError {}
 
 // TODO: Debugging error description

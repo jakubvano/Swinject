@@ -11,7 +11,7 @@ public struct Swinject {
     let tree: SwinjectTree
     let container: SwinjectContainer
     let anyContext: Any
-    let contextType: Any.Type
+    let contextDescriptor: ContextDescriptor
     let stack: [AnyInstanceRequest]
     let properties: Properties
 }
@@ -20,7 +20,7 @@ extension Swinject: Resolver {
     public func resolve<Type>(_ request: InstanceRequest<Type>) throws -> Type {
         let binding: AnyBinding
         do {
-            binding = try container.findBinding(for: request.descriptor, on: contextType)
+            binding = try container.findBinding(for: request.descriptor, on: contextDescriptor)
         } catch let error as NoBinding {
             if let custom = customResolve(request) { return custom }
             throw error
@@ -29,12 +29,12 @@ extension Swinject: Resolver {
     }
 
     public func on<Context>(_ context: Context) -> Resolver {
-        return with(context: context, contextType: unwrapOptionals(Context.self))
+        return with(context: context, contextDescriptor: ContextDescriptor(type: Context.self))
     }
 
     public func context(as resultType: Any.Type) throws -> Any {
-        return try container.allTranslators(on: contextType)
-            .filter { $0.sourceType == contextType && $0.targetType == resultType }
+        return try container.allTranslators(on: contextDescriptor)
+            .filter { $0.source == contextDescriptor && $0.target == ContextDescriptor(type: resultType) }
             .compactMap { try $0.translate(anyContext) }
             .first ?? { throw NoContextTranslator() }()
     }
@@ -43,7 +43,7 @@ extension Swinject: Resolver {
 extension Swinject {
     private func customResolve<Type>(_ request: InstanceRequest<Type>) -> Type? {
         guard let custom = Type.self as? CustomResolvable.Type else { return nil }
-        guard container.hasBinding(for: request.descriptor, on: contextType) else { return nil }
+        guard container.hasBinding(for: request.descriptor, on: contextDescriptor) else { return nil }
         return custom.init(
             resolver: custom.delaysResolution ? with(stack: []) : self,
             request: request
@@ -70,7 +70,7 @@ extension Swinject {
             tree: tree,
             container: SwinjectContainer.Builder(tree: tree, properties: properties).makeContainer(),
             anyContext: (),
-            contextType: Void.self,
+            contextDescriptor: .anyContext,
             stack: [],
             properties: properties
         )
@@ -78,14 +78,14 @@ extension Swinject {
 
     func with(
         context: Any? = nil,
-        contextType: Any.Type? = nil,
+        contextDescriptor: ContextDescriptor? = nil,
         stack: [AnyInstanceRequest]? = nil
     ) -> Swinject {
         return Swinject(
             tree: tree,
             container: container,
             anyContext: context ?? anyContext,
-            contextType: contextType ?? self.contextType,
+            contextDescriptor: contextDescriptor ?? self.contextDescriptor,
             stack: stack ?? self.stack,
             properties: properties
         )

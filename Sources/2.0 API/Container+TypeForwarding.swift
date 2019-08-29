@@ -23,7 +23,7 @@ extension Container {
             type: type,
             key: BindingKey(
                 type: tagged(T.self, with: name),
-                contextType: service.key.contextType,
+                context: service.key.context,
                 arguments: service.key.arguments
             ),
             name: name,

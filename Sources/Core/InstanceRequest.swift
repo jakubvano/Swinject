@@ -32,7 +32,7 @@ extension AnyInstanceRequest {
 }
 
 extension InstanceRequestDescriptor {
-    func key(on contextType: Any.Type) -> BindingKey {
-        return BindingKey(type: type, contextType: contextType, arguments: arguments)
+    func key(on context: ContextDescriptor) -> BindingKey {
+        return BindingKey(type: type, context: context, arguments: arguments)
     }
 }

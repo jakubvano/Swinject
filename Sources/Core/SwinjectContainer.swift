@@ -14,49 +14,49 @@ extension SwinjectContainer {
             .flatMap { $0.dependencies }
             .compactMap { $0.asInstanceRequest }
             .forEach {
-                if !hasBinding(for: $0, on: Any.self) { throw MissingDependency() }
+                if !hasBinding(for: $0, on: .anyContext) { throw MissingDependency() }
             }
     }
 }
 
 extension SwinjectContainer {
-    func hasBinding(for request: InstanceRequestDescriptor, on contextType: Any.Type) -> Bool {
+    func hasBinding(for request: InstanceRequestDescriptor, on context: ContextDescriptor) -> Bool {
         if let custom = request.type.type as? CustomResolvable.Type {
-            return custom.requiredRequest(for: request).map { hasBinding(for: $0, on: contextType) } ?? true
+            return custom.requiredRequest(for: request).map { hasBinding(for: $0, on: context) } ?? true
         } else {
-            return (try? findBinding(for: request, on: contextType)) != nil
+            return (try? findBinding(for: request, on: context)) != nil
         }
     }
 
-    func findBinding(for request: InstanceRequestDescriptor, on contextType: Any.Type) throws -> AnyBinding {
-        let bindings = findBindings(for: request, on: contextType)
+    func findBinding(for request: InstanceRequestDescriptor, on context: ContextDescriptor) throws -> AnyBinding {
+        let bindings = findBindings(for: request, on: context)
         if bindings.isEmpty { throw NoBinding() }
         if bindings.count > 1 { throw MultipleBindings() }
         return bindings[0]
     }
 
-    func allTranslators(on contextType: Any.Type) -> [AnyContextTranslator] {
-        return translators.filter { $0.sourceType == contextType } + defaultTranslators(on: contextType)
+    func allTranslators(on context: ContextDescriptor) -> [AnyContextTranslator] {
+        return translators.filter { $0.source == context } + defaultTranslators(on: context)
     }
 
-    private func findBindings(for request: InstanceRequestDescriptor, on contextType: Any.Type) -> [AnyBinding] {
-        let keyed = translatableKeys(for: request, on: contextType).compactMap { keyedBindings[$0] }
+    private func findBindings(for request: InstanceRequestDescriptor, on context: ContextDescriptor) -> [AnyBinding] {
+        let keyed = translatableKeys(for: request, on: context).compactMap { keyedBindings[$0] }
         if !keyed.isEmpty {
             return keyed
         } else {
-            return translatableKeys(for: request, on: contextType).flatMap { key in
+            return translatableKeys(for: request, on: context).flatMap { key in
                 nonKeyedBindings.filter { $0.matches(key) }
             }
         }
     }
 
-    private func defaultTranslators(on contextType: Any.Type) -> [AnyContextTranslator] {
-        return [IdentityTranslator(for: contextType)]
-            + (contextType == Any.self ? [] : [ToAnyTranslator(for: contextType)])
+    private func defaultTranslators(on context: ContextDescriptor) -> [AnyContextTranslator] {
+        return [IdentityTranslator(for: context)]
+            + (context == .anyContext ? [] : [ToAnyTranslator(for: context)])
     }
 
-    private func translatableKeys(for request: InstanceRequestDescriptor, on contextType: Any.Type) -> [BindingKey] {
-        return allTranslators(on: contextType).map { request.key(on: $0.targetType) }
+    private func translatableKeys(for request: InstanceRequestDescriptor, on context: ContextDescriptor) -> [BindingKey] {
+        return allTranslators(on: context).map { request.key(on: $0.target) }
     }
 }
 

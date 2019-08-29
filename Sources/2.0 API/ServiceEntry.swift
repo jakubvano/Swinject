@@ -75,7 +75,7 @@ extension ServiceEntry: AnyKeyedBinding {
     public var dependencies: [BindingDependency] { return [] }
 
     public func makeInstance(type _: TypeDescriptor, resolver: Resolver, arguments: Arguments) throws -> Any {
-        let context = try resolver.context(as: key.contextType)
+        let context = try resolver.context(as: key.context.type)
         if let scope = scope {
             return getRegistry(scope: scope, context: context).instance(
                 for: ScopeRegistryKey(descriptor: key.type, arguments: arguments),
@@ -100,7 +100,7 @@ extension ServiceEntry: AnyKeyedBinding {
     var key: BindingKey {
         return BindingKey(
             type: tagged(Service.self, with: name),
-            contextType: scope?.contextType ?? Any.self,
+            context: ContextDescriptor(type: scope?.contextType ?? Any.self),
             arguments: argumentDescriptor
         )
     }

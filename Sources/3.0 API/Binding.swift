@@ -9,7 +9,7 @@ public struct Binding<Instance> {
     var properties: BindingProperties = .default
     var scope: AnyScope?
     var arguments: Arguments.Descriptor
-    var contextType: Any.Type
+    var context: ContextDescriptor
 }
 
 extension Binding: BaseBinding, AnyKeyedBinding {
@@ -18,7 +18,7 @@ extension Binding: BaseBinding, AnyKeyedBinding {
     }
 
     var keys: [BindingKey] {
-        return products.map { BindingKey(type: $0, contextType: contextType, arguments: arguments) }
+        return products.map { BindingKey(type: $0, context: context, arguments: arguments) }
     }
 }
 
@@ -66,7 +66,7 @@ public extension Registration {
             factory: { _, _, _ in value },
             scope: scope,
             arguments: [],
-            contextType: Context.self
+            context: ContextDescriptor(type: Context.self)
         )
     }
 
@@ -81,7 +81,7 @@ public extension Registration {
             factory: { try call.execute($1, $2) },
             scope: scope,
             arguments: .init(types: call.inputs.compactMap { $0.asArgumentDependency }),
-            contextType: Context.self
+            context: ContextDescriptor(type: Context.self)
         )
     }
 }
@@ -97,7 +97,7 @@ public extension Registration {
             factory: { _, _, _ in try factory() },
             scope: scope,
             arguments: [],
-            contextType: Context.self
+            context: ContextDescriptor(type: Context.self)
         )
     }
 
@@ -108,7 +108,7 @@ public extension Registration {
             factory: { _, r, _ in try factory(r.contexted()) },
             scope: scope,
             arguments: [],
-            contextType: Context.self
+            context: ContextDescriptor(type: Context.self)
         )
     }
 
@@ -119,7 +119,7 @@ public extension Registration {
             factory: { _, r, a in try factory(r.contexted(), a.arg(0)) },
             scope: scope,
             arguments: [Arg1.self],
-            contextType: Context.self
+            context: ContextDescriptor(type: Context.self)
         )
     }
 
@@ -130,7 +130,7 @@ public extension Registration {
             factory: { _, r, a in try factory(r.contexted(), a.arg(0), a.arg(1)) },
             scope: scope,
             arguments: [Arg1.self, Arg2.self],
-            contextType: Context.self
+            context: ContextDescriptor(type: Context.self)
         )
     }
 
@@ -141,7 +141,7 @@ public extension Registration {
             factory: { _, r, a in try factory(r.contexted(), a.arg(0), a.arg(1), a.arg(2)) },
             scope: scope,
             arguments: [Arg1.self, Arg2.self, Arg3.self],
-            contextType: Context.self
+            context: ContextDescriptor(type: Context.self)
         )
     }
 
@@ -152,7 +152,7 @@ public extension Registration {
             factory: { _, r, a in try factory(r.contexted(), a.arg(0), a.arg(1), a.arg(2), a.arg(3)) },
             scope: scope,
             arguments: [Arg1.self, Arg2.self, Arg3.self, Arg4.self],
-            contextType: Context.self
+            context: ContextDescriptor(type: Context.self)
         )
     }
 
@@ -163,7 +163,7 @@ public extension Registration {
             factory: { _, r, a in try factory(r.contexted(), a.arg(0), a.arg(1), a.arg(2), a.arg(3), a.arg(4)) },
             scope: scope,
             arguments: [Arg1.self, Arg2.self, Arg3.self, Arg4.self, Arg5.self],
-            contextType: Context.self
+            context: ContextDescriptor(type: Context.self)
         )
     }
 }

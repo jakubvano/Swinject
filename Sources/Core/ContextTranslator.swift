@@ -3,14 +3,14 @@
 //
 
 protocol AnyContextTranslator: SwinjectEntry {
-    var sourceType: Any.Type { get }
-    var targetType: Any.Type { get }
+    var source: ContextDescriptor { get }
+    var target: ContextDescriptor { get }
     func translate(_ context: Any) throws -> Any
 }
 
 public struct ContextTranslator<Source, Target>: AnyContextTranslator {
-    let sourceType: Any.Type = unwrapOptionals(Source.self)
-    let targetType: Any.Type = unwrapOptionals(Target.self)
+    let source = ContextDescriptor(type: Source.self)
+    let target = ContextDescriptor(type: Target.self)
     let translation: (Source) -> Target
 
     func translate(_ context: Any) throws -> Any {
@@ -20,23 +20,23 @@ public struct ContextTranslator<Source, Target>: AnyContextTranslator {
 }
 
 struct IdentityTranslator: AnyContextTranslator {
-    let sourceType: Any.Type
-    let targetType: Any.Type
+    let source: ContextDescriptor
+    let target: ContextDescriptor
 
-    init(for contextType: Any.Type) {
-        sourceType = unwrapOptionals(contextType)
-        targetType = unwrapOptionals(contextType)
+    init(for context: ContextDescriptor) {
+        source = context
+        target = context
     }
 
     func translate(_ context: Any) throws -> Any { return context }
 }
 
 struct ToAnyTranslator: AnyContextTranslator {
-    let sourceType: Any.Type
-    let targetType: Any.Type = Any.self
+    let source: ContextDescriptor
+    let target = ContextDescriptor(type: Any.self)
 
-    init(for contextType: Any.Type) {
-        sourceType = unwrapOptionals(contextType)
+    init(for source: ContextDescriptor) {
+        self.source = source
     }
 
     func translate(_ context: Any) throws -> Any { return context }
