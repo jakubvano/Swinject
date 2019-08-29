@@ -31,6 +31,12 @@ class SubtypeBindingSpec: QuickSpec { override func spec() { #if swift(>=5.1)
         }
         expect { try instance(of: SubClass1.self, arg: "42").from(swinject) }.to(throwError())
     }
+    it("throws if requesting type on wrong context") {
+        let swinject = Swinject {
+            register(inContextOf: String.self).subtypeFactory(for: BaseClass.self) { $0.init() }
+        }
+        expect { try instance(of: SubClass1.self).from(swinject.on(42)) }.to(throwError())
+    }
     it("ignores common binding if also has specific binding for type") {
         let swinject = Swinject {
             register().subtypeFactory(for: Any.self) { _ in 0 }

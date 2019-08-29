@@ -2,14 +2,15 @@
 //  Copyright © 2019 Swinject Contributors. All rights reserved.
 //
 
-public struct SubtypeBinding<Instance, Context> {
+public struct SubtypeBinding<BaseType> {
     var tag: String?
     var doesTypeMatch: (Any.Type) -> Bool
     var dependencies: [BindingDependency]
-    var factory: (TypeDescriptor, ContextedResolver<Context>, Arguments) throws -> Instance
+    var factory: (TypeDescriptor, Resolver, Arguments) throws -> BaseType
     var properties: BindingProperties = .default
     var scope: AnyScope?
     var arguments: Arguments.Descriptor
+    var contextType: Any.Type
 }
 
 extension SubtypeBinding: BaseBinding {
@@ -18,7 +19,7 @@ extension SubtypeBinding: BaseBinding {
     }
 
     func matches(_ key: BindingKey) -> Bool {
-        return key.contextType == Context.self
+        return key.contextType == contextType // FIXME: optional type, any context
             && key.arguments == arguments
             && key.type.tag == tag
             && doesTypeMatch(key.type.type)
@@ -37,8 +38,8 @@ public extension Registration {
         for _: BaseType.Type,
         tag: String? = nil,
         factory: @escaping (BaseType.Type) throws -> BaseType
-    ) -> SubtypeBinding<BaseType, Context> {
-        return SubtypeBinding<BaseType, Context>(
+    ) -> SubtypeBinding<BaseType> {
+        return SubtypeBinding<BaseType>(
             tag: tag,
             doesTypeMatch: { $0 is BaseType.Type },
             dependencies: [],
@@ -47,7 +48,8 @@ public extension Registration {
                 return try factory(type)
             },
             scope: scope,
-            arguments: []
+            arguments: [],
+            contextType: Context.self
         )
     }
 }

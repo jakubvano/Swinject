@@ -2,13 +2,14 @@
 //  Copyright © 2019 Swinject Contributors. All rights reserved.
 //
 
-public struct Binding<Instance, Context> {
+public struct Binding<Instance> {
     var products: [TypeDescriptor]
     var dependencies: [BindingDependency]
-    var factory: (TypeDescriptor, ContextedResolver<Context>, Arguments) throws -> Instance
+    var factory: (TypeDescriptor, Resolver, Arguments) throws -> Instance
     var properties: BindingProperties = .default
     var scope: AnyScope?
     var arguments: Arguments.Descriptor
+    var contextType: Any.Type
 }
 
 extension Binding: BaseBinding, AnyKeyedBinding {
@@ -17,24 +18,24 @@ extension Binding: BaseBinding, AnyKeyedBinding {
     }
 
     var keys: [BindingKey] {
-        return products.map { BindingKey(type: $0, contextType: Context.self, arguments: arguments) }
+        return products.map { BindingKey(type: $0, contextType: contextType, arguments: arguments) }
     }
 }
 
 public extension Binding {
-    func toUse<OtherInstance>(_: (Instance) -> OtherInstance, tag: String?) -> Binding<Instance, Context> {
+    func toUse<OtherInstance>(_: (Instance) -> OtherInstance, tag: String?) -> Binding<Instance> {
         return updated { $0.products = [tagged(OtherInstance.self, with: tag)] }
     }
 
-    func toUse<OtherInstance>(_ typeCheck: (Instance) -> OtherInstance) -> Binding<Instance, Context> {
+    func toUse<OtherInstance>(_ typeCheck: (Instance) -> OtherInstance) -> Binding<Instance> {
         return toUse(typeCheck, tag: nil)
     }
 
-    func alsoUse<OtherInstance>(_: (Instance) -> OtherInstance, tag: String? = nil) -> Binding<Instance, Context> {
+    func alsoUse<OtherInstance>(_: (Instance) -> OtherInstance, tag: String? = nil) -> Binding<Instance> {
         return updated { $0.products.append(tagged(OtherInstance.self, with: tag)) }
     }
 
-    func alsoUse<OtherInstance>(_ typeCheck: (Instance) -> OtherInstance) -> Binding<Instance, Context> {
+    func alsoUse<OtherInstance>(_ typeCheck: (Instance) -> OtherInstance) -> Binding<Instance> {
         return alsoUse(typeCheck, tag: nil)
     }
 }
@@ -58,13 +59,14 @@ public extension Binding {
 }
 
 public extension Registration {
-    func constant<Value>(_ value: Value, tag: String? = nil) -> Binding<Value, Context> {
+    func constant<Value>(_ value: Value, tag: String? = nil) -> Binding<Value> {
         return Binding(
             products: [tagged(Value.self, with: tag)],
             dependencies: [],
             factory: { _, _, _ in value },
             scope: scope,
-            arguments: []
+            arguments: [],
+            contextType: Context.self
         )
     }
 
@@ -72,13 +74,14 @@ public extension Registration {
         _ call: FunctionCall<NewInstance>,
         as _: NewInstance.Type = NewInstance.self,
         tag: String? = nil
-    ) -> Binding<NewInstance, Context> {
+    ) -> Binding<NewInstance> {
         return Binding(
             products: [tagged(NewInstance.self, with: tag)],
             dependencies: call.inputs.map { $0.asDependency },
             factory: { try call.execute($1, $2) },
             scope: scope,
-            arguments: .init(types: call.inputs.compactMap { $0.asArgumentDependency })
+            arguments: .init(types: call.inputs.compactMap { $0.asArgumentDependency }),
+            contextType: Context.self
         )
     }
 }
@@ -87,73 +90,80 @@ public extension Registration {
 // swiftlint:disable identifier_name
 // sourcery:inline:BindingFactoryApi
 public extension Registration {
-    func factory<NewInstance>(for _: NewInstance.Type = NewInstance.self, tag: String? = nil, factory: @escaping () throws -> NewInstance) -> Binding<NewInstance, Context> {
-        return Binding<NewInstance, Context>(
+    func factory<NewInstance>(for _: NewInstance.Type = NewInstance.self, tag: String? = nil, factory: @escaping () throws -> NewInstance) -> Binding<NewInstance> {
+        return Binding<NewInstance>(
             products: [tagged(NewInstance.self, with: tag)],
             dependencies: [],
             factory: { _, _, _ in try factory() },
             scope: scope,
-            arguments: []
+            arguments: [],
+            contextType: Context.self
         )
     }
 
-    func factory<NewInstance>(for _: NewInstance.Type = NewInstance.self, tag: String? = nil, factory: @escaping (ContextedResolver<Context>) throws -> NewInstance) -> Binding<NewInstance, Context> {
-        return Binding<NewInstance, Context>(
+    func factory<NewInstance>(for _: NewInstance.Type = NewInstance.self, tag: String? = nil, factory: @escaping (ContextedResolver<Context>) throws -> NewInstance) -> Binding<NewInstance> {
+        return Binding<NewInstance>(
             products: [tagged(NewInstance.self, with: tag)],
             dependencies: [],
-            factory: { _, r, _ in try factory(r) },
+            factory: { _, r, _ in try factory(r.contexted()) },
             scope: scope,
-            arguments: []
+            arguments: [],
+            contextType: Context.self
         )
     }
 
-    func factory<NewInstance, Arg1>(for _: NewInstance.Type = NewInstance.self, tag: String? = nil, factory: @escaping (ContextedResolver<Context>, Arg1) throws -> NewInstance) -> Binding<NewInstance, Context> {
-        return Binding<NewInstance, Context>(
+    func factory<NewInstance, Arg1>(for _: NewInstance.Type = NewInstance.self, tag: String? = nil, factory: @escaping (ContextedResolver<Context>, Arg1) throws -> NewInstance) -> Binding<NewInstance> {
+        return Binding<NewInstance>(
             products: [tagged(NewInstance.self, with: tag)],
             dependencies: [],
-            factory: { _, r, a in try factory(r, a.arg(0)) },
+            factory: { _, r, a in try factory(r.contexted(), a.arg(0)) },
             scope: scope,
-            arguments: [Arg1.self]
+            arguments: [Arg1.self],
+            contextType: Context.self
         )
     }
 
-    func factory<NewInstance, Arg1, Arg2>(for _: NewInstance.Type = NewInstance.self, tag: String? = nil, factory: @escaping (ContextedResolver<Context>, Arg1, Arg2) throws -> NewInstance) -> Binding<NewInstance, Context> {
-        return Binding<NewInstance, Context>(
+    func factory<NewInstance, Arg1, Arg2>(for _: NewInstance.Type = NewInstance.self, tag: String? = nil, factory: @escaping (ContextedResolver<Context>, Arg1, Arg2) throws -> NewInstance) -> Binding<NewInstance> {
+        return Binding<NewInstance>(
             products: [tagged(NewInstance.self, with: tag)],
             dependencies: [],
-            factory: { _, r, a in try factory(r, a.arg(0), a.arg(1)) },
+            factory: { _, r, a in try factory(r.contexted(), a.arg(0), a.arg(1)) },
             scope: scope,
-            arguments: [Arg1.self, Arg2.self]
+            arguments: [Arg1.self, Arg2.self],
+            contextType: Context.self
         )
     }
 
-    func factory<NewInstance, Arg1, Arg2, Arg3>(for _: NewInstance.Type = NewInstance.self, tag: String? = nil, factory: @escaping (ContextedResolver<Context>, Arg1, Arg2, Arg3) throws -> NewInstance) -> Binding<NewInstance, Context> {
-        return Binding<NewInstance, Context>(
+    func factory<NewInstance, Arg1, Arg2, Arg3>(for _: NewInstance.Type = NewInstance.self, tag: String? = nil, factory: @escaping (ContextedResolver<Context>, Arg1, Arg2, Arg3) throws -> NewInstance) -> Binding<NewInstance> {
+        return Binding<NewInstance>(
             products: [tagged(NewInstance.self, with: tag)],
             dependencies: [],
-            factory: { _, r, a in try factory(r, a.arg(0), a.arg(1), a.arg(2)) },
+            factory: { _, r, a in try factory(r.contexted(), a.arg(0), a.arg(1), a.arg(2)) },
             scope: scope,
-            arguments: [Arg1.self, Arg2.self, Arg3.self]
+            arguments: [Arg1.self, Arg2.self, Arg3.self],
+            contextType: Context.self
         )
     }
 
-    func factory<NewInstance, Arg1, Arg2, Arg3, Arg4>(for _: NewInstance.Type = NewInstance.self, tag: String? = nil, factory: @escaping (ContextedResolver<Context>, Arg1, Arg2, Arg3, Arg4) throws -> NewInstance) -> Binding<NewInstance, Context> {
-        return Binding<NewInstance, Context>(
+    func factory<NewInstance, Arg1, Arg2, Arg3, Arg4>(for _: NewInstance.Type = NewInstance.self, tag: String? = nil, factory: @escaping (ContextedResolver<Context>, Arg1, Arg2, Arg3, Arg4) throws -> NewInstance) -> Binding<NewInstance> {
+        return Binding<NewInstance>(
             products: [tagged(NewInstance.self, with: tag)],
             dependencies: [],
-            factory: { _, r, a in try factory(r, a.arg(0), a.arg(1), a.arg(2), a.arg(3)) },
+            factory: { _, r, a in try factory(r.contexted(), a.arg(0), a.arg(1), a.arg(2), a.arg(3)) },
             scope: scope,
-            arguments: [Arg1.self, Arg2.self, Arg3.self, Arg4.self]
+            arguments: [Arg1.self, Arg2.self, Arg3.self, Arg4.self],
+            contextType: Context.self
         )
     }
 
-    func factory<NewInstance, Arg1, Arg2, Arg3, Arg4, Arg5>(for _: NewInstance.Type = NewInstance.self, tag: String? = nil, factory: @escaping (ContextedResolver<Context>, Arg1, Arg2, Arg3, Arg4, Arg5) throws -> NewInstance) -> Binding<NewInstance, Context> {
-        return Binding<NewInstance, Context>(
+    func factory<NewInstance, Arg1, Arg2, Arg3, Arg4, Arg5>(for _: NewInstance.Type = NewInstance.self, tag: String? = nil, factory: @escaping (ContextedResolver<Context>, Arg1, Arg2, Arg3, Arg4, Arg5) throws -> NewInstance) -> Binding<NewInstance> {
+        return Binding<NewInstance>(
             products: [tagged(NewInstance.self, with: tag)],
             dependencies: [],
-            factory: { _, r, a in try factory(r, a.arg(0), a.arg(1), a.arg(2), a.arg(3), a.arg(4)) },
+            factory: { _, r, a in try factory(r.contexted(), a.arg(0), a.arg(1), a.arg(2), a.arg(3), a.arg(4)) },
             scope: scope,
-            arguments: [Arg1.self, Arg2.self, Arg3.self, Arg4.self, Arg5.self]
+            arguments: [Arg1.self, Arg2.self, Arg3.self, Arg4.self, Arg5.self],
+            contextType: Context.self
         )
     }
 }

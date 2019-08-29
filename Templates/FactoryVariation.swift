@@ -40,7 +40,7 @@ extension FactoryVariation {
     }
 
     var returnType: String {
-        return "Binding<NewInstance, Context>"
+        return "Binding<NewInstance>"
     }
 
     var hashableArgTypes: String {
@@ -64,7 +64,7 @@ extension FactoryVariation {
 
     var factoryVars: String {
         return join(
-            hasResolver ? "r" : nil,
+            hasResolver ? "r.contexted()" : nil,
             argVarsOrNil
         )
     }
@@ -94,7 +94,8 @@ extension FactoryVariation {
                     dependencies: [],
                     factory: { \(factoryInputs) in try factory(\(factoryVars)) },
                     scope: scope,
-                    arguments: [\(argDescriptorTypes)]
+                    arguments: [\(argDescriptorTypes)],
+                    contextType: Context.self
                 )
             }
         """

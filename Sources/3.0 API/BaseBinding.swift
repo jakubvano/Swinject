@@ -11,11 +11,11 @@ public struct BindingProperties {
 
 protocol BaseBinding: AnyBinding {
     associatedtype Instance
-    associatedtype Context
 
-    var factory: (TypeDescriptor, ContextedResolver<Context>, Arguments) throws -> Instance { get set }
+    var factory: (TypeDescriptor, Resolver, Arguments) throws -> Instance { get set }
     var properties: BindingProperties { get set }
     var scope: AnyScope? { get }
+    var contextType: Any.Type { get }
 
     func registryKey(forType type: TypeDescriptor, arguments: Arguments) -> ScopeRegistryKey
 }
@@ -27,7 +27,7 @@ extension BaseBinding {
         if let scope = scope {
             return try scopedInstance(type: type, resolver: resolver, scope: scope, arguments: arguments)
         } else {
-            return try simpleInstance(type: type, resolver: resolver, arguments: arguments)
+            return try factory(type, resolver, arguments)
         }
     }
 
@@ -35,14 +35,10 @@ extension BaseBinding {
         type: TypeDescriptor, resolver: Resolver, scope: AnyScope, arguments: Arguments
     ) throws -> Any {
         return try scope
-            .registry(for: resolver.context(as: Context.self))
+            .registry(for: resolver.context(as: contextType))
             .instance(for: registryKey(forType: type, arguments: arguments)) {
-                try properties.reference(simpleInstance(type: type, resolver: resolver, arguments: arguments))
+                try properties.reference(factory(type, resolver, arguments))
             }
-    }
-
-    private func simpleInstance(type: TypeDescriptor, resolver: Resolver, arguments: Arguments) throws -> Any {
-        return try factory(type, resolver.contexted(), arguments)
     }
 }
 
