@@ -7,7 +7,7 @@ import Quick
 import Swinject
 @testable import class Swinject.UnboundScope
 
-class AdvancedBindingSpec: QuickSpec { override func spec() { #if swift(>=5.1)
+class SubtypeBindingSpec: QuickSpec { override func spec() { #if swift(>=5.1)
     beforeEach {
         UnboundScope.root.close()
     }

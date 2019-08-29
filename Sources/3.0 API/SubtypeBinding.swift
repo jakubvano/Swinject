@@ -2,27 +2,32 @@
 //  Copyright © 2019 Swinject Contributors. All rights reserved.
 //
 
-public struct FuzzyBinding<Instance, Context> {
-    public let contextType: Any.Type = Context.self
+public struct SubtypeBinding<Instance, Context> {
     var tag: String?
     var doesTypeMatch: (Any.Type) -> Bool
-    public var dependencies: [BindingDependency]
+    var dependencies: [BindingDependency]
     var factory: (TypeDescriptor, ContextedResolver<Context>, Arguments) throws -> Instance
     var properties: BindingProperties = .default
     var scope: AnyScope?
     var arguments: Arguments.Descriptor
 }
 
-extension FuzzyBinding: Binding {
+extension SubtypeBinding: BaseBinding {
     func registryKey(forType type: TypeDescriptor, arguments: Arguments) -> ScopeRegistryKey {
         return ScopeRegistryKey(descriptor: type, arguments: arguments)
     }
 
-    public func matches(_ key: BindingKey) -> Bool {
-        return key.contextType == contextType
+    func matches(_ key: BindingKey) -> Bool {
+        return key.contextType == Context.self
             && key.arguments == arguments
             && key.type.tag == tag
             && doesTypeMatch(key.type.type)
+    }
+}
+
+public extension SubtypeBinding {
+    func withProperties(_ update: (inout BindingProperties) -> Void) -> Self {
+        return updated { update(&$0.properties) }
     }
 }
 
@@ -32,8 +37,8 @@ public extension Registration {
         for _: BaseType.Type,
         tag: String? = nil,
         factory: @escaping (BaseType.Type) throws -> BaseType
-    ) -> FuzzyBinding<BaseType, Context> {
-        return FuzzyBinding<BaseType, Context>(
+    ) -> SubtypeBinding<BaseType, Context> {
+        return SubtypeBinding<BaseType, Context>(
             tag: tag,
             doesTypeMatch: { $0 is BaseType.Type },
             dependencies: [],

@@ -38,7 +38,7 @@ public enum BindingDependency {
     case context(Any.Type)
 }
 
-public protocol AnyBinding: SwinjectEntry {
+protocol AnyBinding: SwinjectEntry {
     var dependencies: [BindingDependency] { get }
     var overrides: Bool { get }
     func matches(_ key: BindingKey) -> Bool
@@ -50,7 +50,7 @@ protocol AnyKeyedBinding: AnyBinding {
 }
 
 extension AnyKeyedBinding {
-    public func matches(_ key: BindingKey) -> Bool {
+    func matches(_ key: BindingKey) -> Bool {
         return keys.contains(key)
     }
 }

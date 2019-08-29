@@ -40,7 +40,7 @@ extension FactoryVariation {
     }
 
     var returnType: String {
-        return "KeyedBinding<NewInstance, Context>"
+        return "Binding<NewInstance, Context>"
     }
 
     var hashableArgTypes: String {
