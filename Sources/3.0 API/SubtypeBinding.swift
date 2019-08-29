@@ -32,21 +32,39 @@ public extension SubtypeBinding {
     }
 }
 
+public extension SubtypeBinding {
+    func toUseWhen(_ condition: @escaping (Any.Type) -> Bool) -> SubtypeBinding<BaseType> {
+        return updated { $0.doesTypeMatch = { self.doesTypeMatch($0) && condition($0) } }
+    }
+}
+
 public extension Registration {
     // TODO: Overloads
-    func classFactory<BaseType>(
-        for _: BaseType.Type,
+    func classFactory<Class>(
+        for _: Class.Type,
         tag: String? = nil,
-        factory: @escaping (BaseType.Type) throws -> BaseType
-    ) -> SubtypeBinding<BaseType> where BaseType: AnyObject {
-        return SubtypeBinding<BaseType>(
+        factory: @escaping (Class.Type) throws -> Class
+    ) -> SubtypeBinding<Class> where Class: AnyObject {
+        return SubtypeBinding<Class>(
             tag: tag,
-            doesTypeMatch: { $0 is BaseType.Type },
+            doesTypeMatch: { $0 is Class.Type },
             dependencies: [],
             factory: { descriptor, _, _ in
-                guard let type = descriptor.type as? BaseType.Type else { throw TypeMismatch() }
+                guard let type = descriptor.type as? Class.Type else { throw TypeMismatch() }
                 return try factory(type)
             },
+            scope: scope,
+            arguments: [],
+            context: ContextDescriptor(type: Context.self)
+        )
+    }
+
+    func anyTypeFactory(tag _: String? = nil, factory: @escaping (Any.Type) throws -> Any) -> SubtypeBinding<Any> {
+        return SubtypeBinding<Any>(
+            tag: nil,
+            doesTypeMatch: { _ in true },
+            dependencies: [],
+            factory: { descriptor, _, _ in try factory(descriptor.type) },
             scope: scope,
             arguments: [],
             context: ContextDescriptor(type: Context.self)
