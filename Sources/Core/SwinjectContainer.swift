@@ -55,7 +55,9 @@ extension SwinjectContainer {
             + (context == .anyContext ? [] : [ToAnyTranslator(for: context)])
     }
 
-    private func translatableKeys(for request: InstanceRequestDescriptor, on context: ContextDescriptor) -> [BindingKey] {
+    private func translatableKeys(
+        for request: InstanceRequestDescriptor, on context: ContextDescriptor
+    ) -> [BindingKey] {
         return allTranslators(on: context).map { request.key(on: $0.target) }
     }
 }

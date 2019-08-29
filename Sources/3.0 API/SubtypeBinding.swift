@@ -34,11 +34,11 @@ public extension SubtypeBinding {
 
 public extension Registration {
     // TODO: Overloads
-    func subtypeFactory<BaseType>(
+    func classFactory<BaseType>(
         for _: BaseType.Type,
         tag: String? = nil,
         factory: @escaping (BaseType.Type) throws -> BaseType
-    ) -> SubtypeBinding<BaseType> {
+    ) -> SubtypeBinding<BaseType> where BaseType: AnyObject {
         return SubtypeBinding<BaseType>(
             tag: tag,
             doesTypeMatch: { $0 is BaseType.Type },

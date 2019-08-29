@@ -11,9 +11,9 @@ class SubtypeBindingSpec: QuickSpec { override func spec() { #if swift(>=5.1)
     beforeEach {
         UnboundScope.root.close()
     }
-    it("can register a common binding for all sub types") {
+    it("can register a common binding for all subclasses") {
         let swinject = Swinject {
-            register().subtypeFactory(for: BaseClass.self) { $0.init() }
+            register().classFactory(for: BaseClass.self) { $0.init() }
         }
         expect { try instance(of: BaseClass.self).from(swinject) }.notTo(throwError())
         expect { try instance(of: SubClass1.self).from(swinject) }.notTo(throwError())
@@ -21,44 +21,46 @@ class SubtypeBindingSpec: QuickSpec { override func spec() { #if swift(>=5.1)
     }
     it("throws if requesting type with wrong tag") {
         let swinject = Swinject {
-            register().subtypeFactory(for: BaseClass.self, tag: "tag") { $0.init() }
+            register().classFactory(for: BaseClass.self, tag: "tag") { $0.init() }
         }
         expect { try instance(of: SubClass1.self).from(swinject) }.to(throwError())
     }
     it("throws if requesting type with wrong arguments") {
         let swinject = Swinject {
-            register().subtypeFactory(for: BaseClass.self) { $0.init() }
+            register().classFactory(for: BaseClass.self) { $0.init() }
         }
         expect { try instance(of: SubClass1.self, arg: "42").from(swinject) }.to(throwError())
     }
     it("throws if requesting type on wrong context") {
         let swinject = Swinject {
-            register(inContextOf: String.self).subtypeFactory(for: BaseClass.self) { $0.init() }
+            register(inContextOf: String.self).classFactory(for: BaseClass.self) { $0.init() }
         }
         expect { try instance(of: SubClass1.self).from(swinject.on(42)) }.to(throwError())
     }
-    it("can resolve subtype without context on any context") {
+    it("can resolve subclass without context on any context") {
         let swinject = Swinject {
-            register().subtypeFactory(for: BaseClass.self) { $0.init() }
+            register().classFactory(for: BaseClass.self) { $0.init() }
         }
         expect { try instance(of: SubClass1.self).from(swinject.on("context")) }.notTo(throwError())
     }
-    it("can resolve subtype on context optional") {
+    it("can resolve subclass on context optional") {
         let swinject = Swinject {
-            register(inContextOf: String.self).subtypeFactory(for: BaseClass.self) { $0.init() }
+            register(inContextOf: String.self).classFactory(for: BaseClass.self) { $0.init() }
         }
         expect { try instance(of: SubClass1.self).from(swinject.on("context" as String?)) }.notTo(throwError())
     }
     it("ignores common binding if also has specific binding for type") {
+        var invoked = false
         let swinject = Swinject {
-            register().subtypeFactory(for: Any.self) { _ in 0 }
-            register().constant(42)
+            register().classFactory(for: BaseClass.self) { invoked = true; return $0.init() }
+            register().factory { SubClass1() }
         }
-        expect { try instance(of: Int.self).from(swinject) } == 42
+        _ = try? instance(of: SubClass1.self).from(swinject)
+        expect(invoked) == false
     }
     it("can register a common binding for a singleton") {
         let swinject = Swinject {
-            registerSingle().subtypeFactory(for: BaseClass.self) { $0.init() }
+            registerSingle().classFactory(for: BaseClass.self) { $0.init() }
         }
         let first = try? instance(of: SubClass1.self).from(swinject)
         let second = try? instance(of: SubClass1.self).from(swinject)
@@ -67,8 +69,8 @@ class SubtypeBindingSpec: QuickSpec { override func spec() { #if swift(>=5.1)
     it("ignores common binding when checking overrides") {
         expect {
             _ = Swinject {
-                register().subtypeFactory(for: BaseClass.self) { $0.init() }
-                register().subtypeFactory(for: BaseClass.self) { $0.init() }
+                register().classFactory(for: BaseClass.self) { $0.init() }
+                register().classFactory(for: BaseClass.self) { $0.init() }
             }
         }.notTo(throwAssertion())
     }
@@ -77,14 +79,18 @@ class SubtypeBindingSpec: QuickSpec { override func spec() { #if swift(>=5.1)
             _ = Swinject {
                 register().constant("name")
                 register().resultOf(Pet.init^)
-                register().subtypeFactory(for: Human.self) { _ in Human() }
+                register().classFactory(for: Human.self) { _ in Human() }
             }
         }.notTo(throwAssertion())
     }
     #endif
 } }
 
-class BaseClass {
+protocol BaseProtocol {
+    init()
+}
+
+class BaseClass: BaseProtocol {
     required init() {}
 }
 
